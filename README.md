@@ -4,7 +4,7 @@
 
 **Team Members:**
 
-- Aman Patel - [@amann45](https://github.com/amann45)
+- Aman Kumar Ray - [@amann45](https://github.com/amann45)
 - Aayam Tiwari - [@aayam123](https://github.com/aayam123)
 - Dilasha Adhikari - [@dilasha68](https://github.com/dilasha68)
 - Manu Sharan Kumar - [@manusharansah](https://github.com/manusharansah)
