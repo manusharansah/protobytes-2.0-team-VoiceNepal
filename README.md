@@ -49,9 +49,8 @@ pip install -r requirements.txt
 
 # 5. Run the Django development server
 cd backend/voicechat
-echo "OPENAI_API_KEY=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
-" > .env
 
+#In .env with contents {OPENAI_API_KEY=given_api_key}, replace with given api key.
 python manage.py runserver
 
 # 6. Open http://127.0.0.1:8000/ in your browser
