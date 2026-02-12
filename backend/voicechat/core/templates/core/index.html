@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Django Voice App</title>
+</head>
+<body>
+    <h1>Speak Something</h1>
+
+    <!-- Language selector: English / Nepali -->
+    <div style="margin-bottom: 12px;">
+        <label for="languageSelect">Language: </label>
+        <select id="languageSelect">
+            <option value="en">English</option>
+            <option value="ne">नेपाली (Nepali)</option>
+        </select>
+    </div>
+
+    <!-- Input & Submit Form -->
+    <form id="voiceForm" method="POST" action="{% url 'speak_text' %}">
+        {% csrf_token %}
+        <input type="hidden" id="languageInput" name="language" value="en">
+        <input type="text" id="speechText" name="speechText" placeholder="Your speech text will appear here">
+        <button type="submit">Submit</button>
+        <!-- Playback button: speak whatever is in the textbox -->
+        <button type="button" onclick="playbackText()">▶️ Playback</button>
+    </form>
+
+    <!-- Button to record speech -->
+    <button type="button" onclick="startDictation()">🎤 Speak</button>
+
+    <!-- Audio Player -->
+    <audio id="audioPlayer" controls></audio>
+    
+    <!-- Voice Status Indicator -->
+    <div id="voiceStatus" style="margin-top: 10px; font-weight: bold;"></div>
+    <div id="botText" style="margin-top: 10px;"></div>
+    <script>
+    // Keep hidden input in sync with language dropdown
+    const languageSelect = document.getElementById('languageSelect');
+    const languageInput = document.getElementById('languageInput');
+    languageSelect.addEventListener('change', function() {
+        languageInput.value = this.value;
+    });
+
+    // Get current speech recognition lang code (en-US or ne-NP for Nepali)
+    function getRecognitionLang() {
+        return document.getElementById('languageSelect').value === 'ne' ? 'ne-NP' : 'en-US';
+    }
+
+    // Load voices when page loads
+    window.speechSynthesis.onvoiceschanged = function() {
+        window.speechSynthesis.getVoices();
+    };
+    
+    // Initial voice loading
+    if (window.speechSynthesis.getVoices().length === 0) {
+        window.speechSynthesis.getVoices();
+    }
+    
+    // Capture voice using Web Speech API
+    function startDictation() {
+        if (window.hasOwnProperty('webkitSpeechRecognition')) {
+            var recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = getRecognitionLang();
+            recognition.start();
+
+            recognition.onresult = function(e) {
+                document.getElementById('speechText').value = e.results[0][0].transcript;
+                recognition.stop();
+            };
+
+            recognition.onerror = function(e) {
+                recognition.stop();
+            }
+        } else {
+            alert("Your browser does not support speech recognition.");
+        }
+    }
+
+    // Playback current text in the input using browser text-to-speech
+    function playbackText() {
+        const rawText = document.getElementById('speechText').value.trim();
+        const text = stripAsterisksForSpeech(rawText);
+        if (!text) {
+            alert("Textbox is empty.");
+            return;
+        }
+
+        if (!('speechSynthesis' in window)) {
+            alert("Your browser does not support speech synthesis.");
+            return;
+        }
+
+        // Update status
+        updateVoiceStatus("🔊 Speaking with female voice...");
+
+        // Cancel any ongoing speech
+        window.speechSynthesis.cancel();
+        
+        // Get available voices and filter for female voices
+        let voices = window.speechSynthesis.getVoices();
+        let femaleVoice = null;
+        
+        // Try to find a female voice (common female voice names)
+        const femaleVoiceKeywords = ['female', 'woman', 'girl', 'samantha', 'karen', 'monica', 'daniel', 'kate', 'siri', 'alexa', 'cortana'];
+        
+        // First try to find voices with female indicators in name
+        for (let voice of voices) {
+            const voiceName = voice.name.toLowerCase();
+            if (femaleVoiceKeywords.some(keyword => voiceName.includes(keyword))) {
+                femaleVoice = voice;
+                break;
+            }
+        }
+        
+        // If no specific female voice found, try common English female voices
+        if (!femaleVoice) {
+            const preferredFemaleVoices = [
+                'Microsoft Zira Desktop',
+                'Microsoft Hazel Desktop', 
+                'Google US English Female',
+                'Samantha',
+                'Karen',
+                'Tessa',
+                'Susan',
+                'Moira'
+            ];
+            
+            for (let preferredName of preferredFemaleVoices) {
+                femaleVoice = voices.find(voice => voice.name.includes(preferredName));
+                if (femaleVoice) break;
+            }
+        }
+        
+        // Fallback to any English female voice
+        if (!femaleVoice) {
+            femaleVoice = voices.find(voice => 
+                voice.lang.startsWith('en') && 
+                (voice.name.toLowerCase().includes('female') || 
+                 voice.name.toLowerCase().includes('woman') ||
+                 voice.name.toLowerCase().includes('girl'))
+            );
+        }
+        
+        // Last resort: use first available voice for current language
+        const currentLang = document.getElementById('languageSelect').value;
+        const langPrefix = currentLang === 'ne' ? 'ne' : 'en';
+        if (!femaleVoice) {
+            femaleVoice = voices.find(voice => voice.lang.startsWith(langPrefix));
+        }
+        if (!femaleVoice) {
+            femaleVoice = voices.find(voice => voice.lang.startsWith('en'));
+        }
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = currentLang === 'ne' ? 'ne-NP' : 'en-US';
+        
+        // Set female voice if found
+        if (femaleVoice) {
+            utterance.voice = femaleVoice;
+            updateVoiceStatus(`🔊 Using female voice: ${femaleVoice.name}`);
+        } else {
+            updateVoiceStatus("🔊 Using default voice (female voice not available)");
+        }
+        
+        // Optimize voice settings for better female voice quality
+        utterance.rate = 0.9;  // Slightly slower for clarity
+        utterance.pitch = 1.1; // Slightly higher pitch for female voice
+        utterance.volume = 1.0;
+        
+        // Add event listeners for status updates
+        utterance.onstart = function() {
+            updateVoiceStatus("🎤 Speaking...");
+        };
+        
+        utterance.onend = function() {
+            updateVoiceStatus("✅ Speech completed");
+            setTimeout(() => updateVoiceStatus(""), 2000); // Clear status after 2 seconds
+        };
+        
+        utterance.onerror = function(event) {
+            updateVoiceStatus("❌ Speech error: " + event.error);
+        };
+        
+        window.speechSynthesis.speak(utterance);
+    }
+
+    // Submit form via JS and play audio without reload
+    const form = document.getElementById('voiceForm');
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        try {
+            const formData = new FormData(form);
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const responseText = data.response_text || '';
+            const audioBase64 = data.audio_base64 || '';
+
+            const botTextEl = document.getElementById('botText');
+            botTextEl.innerHTML = responseText ? `Bot: ${renderAsteriskMarkdown(responseText)}` : '';
+
+            if (!audioBase64) {
+                throw new Error('Received empty audio payload');
+            }
+
+            const byteCharacters = atob(audioBase64);
+            const byteArray = new Uint8Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteArray[i] = byteCharacters.charCodeAt(i);
+            }
+            const blob = new Blob([byteArray], { type: 'audio/mpeg' });
+
+            if (blob.size === 0) {
+                throw new Error('Received empty audio file');
+            }
+            
+            const url = URL.createObjectURL(blob);
+            const audioPlayer = document.getElementById('audioPlayer');
+            
+            audioPlayer.src = url;
+            
+            // Add error handling for audio playback
+            audioPlayer.onerror = function() {
+                alert('Error playing audio. Please try again.');
+                URL.revokeObjectURL(url);
+            };
+            
+            audioPlayer.onended = function() {
+                URL.revokeObjectURL(url); // Clean up object URL after playback
+            };
+            
+            const playPromise = audioPlayer.play();
+            
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.error('Audio playback failed:', error);
+                    alert('Audio playback failed. Please try again.');
+                    URL.revokeObjectURL(url);
+                });
+            }
+            
+        } catch (error) {
+            console.error('Error in form submission:', error);
+            alert('Failed to generate speech. Please check your internet connection and try again.');
+        }
+    });
+    
+    // Add keyboard shortcut for playback (Ctrl/Cmd + Enter)
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            e.preventDefault();
+            playbackText();
+        }
+    });
+    
+    // Add visual feedback for voice status
+    function updateVoiceStatus(status) {
+        const statusElement = document.getElementById('voiceStatus');
+        if (statusElement) {
+            statusElement.textContent = status;
+            statusElement.style.color = status.includes('Error') ? 'red' : 'green';
+        }
+    }
+
+    function stripAsterisksForSpeech(text) {
+        return text.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1').trim();
+    }
+
+    function escapeHtml(text) {
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function renderAsteriskMarkdown(text) {
+        const safeText = escapeHtml(text);
+        return safeText
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.+?)\*/g, '<em>$1</em>')
+            .replace(/\n/g, '<br>');
+    }
+    </script>
+</body>
+</html>
