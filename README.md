@@ -54,3 +54,13 @@ cd backend/voicechat
 python manage.py runserver
 
 # 6. Open http://127.0.0.1:8000/ in your browser
+
+#7. Run React server
+cd ..
+cd ..
+cd my-chat-frontend
+npm install
+npm run dev
+
+#8. Open http://localhost:5173/ in your browser
+
