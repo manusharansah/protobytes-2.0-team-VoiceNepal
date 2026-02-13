@@ -1,0 +1,28 @@
+INFO 2026-02-13 16:54:00,174 autoreload 97996 8589732928 Watching for file changes with StatReloader
+INFO 2026-02-13 16:54:05,578 log 97996 6206255104 "OPTIONS /api/check-role/ HTTP/1.1" 200 0
+INFO 2026-02-13 16:54:05,588 log 97996 6206255104 "GET /api/check-role/ HTTP/1.1" 200 56
+INFO 2026-02-13 16:54:43,075 log 97996 6205681664 "OPTIONS /api/chat/ HTTP/1.1" 200 0
+INFO 2026-02-13 16:55:00,527 log 97996 6205681664 "POST /api/chat/ HTTP/1.1" 200 430019
+INFO 2026-02-13 16:58:48,936 log 97996 6205681664 "OPTIONS /api/admin/upload-document/ HTTP/1.1" 200 0
+INFO 2026-02-13 16:58:51,234 log 97996 6205681664 "POST /api/admin/upload-document/ HTTP/1.1" 200 121
+INFO 2026-02-13 16:59:21,182 log 97996 6205681664 "GET /api/check-role/ HTTP/1.1" 200 56
+INFO 2026-02-13 16:59:21,182 log 97996 6222508032 "GET /api/check-role/ HTTP/1.1" 200 56
+INFO 2026-02-13 16:59:30,089 log 97996 6205681664 "POST /api/admin/upload-document/ HTTP/1.1" 200 121
+INFO 2026-02-13 17:05:41,270 autoreload 97996 8589732928 /Users/nirajkumarjha/Manu/Copy/protobytes-2.0-team-VoiceNepal/backend/voicechat/core/rag_service.py changed, reloading.
+INFO 2026-02-13 17:05:41,742 autoreload 98409 8589732928 Watching for file changes with StatReloader
+INFO 2026-02-13 17:05:44,847 autoreload 98409 8589732928 /Users/nirajkumarjha/Manu/Copy/protobytes-2.0-team-VoiceNepal/backend/voicechat/core/rag_service.py changed, reloading.
+INFO 2026-02-13 17:05:45,045 autoreload 98420 8589732928 Watching for file changes with StatReloader
+INFO 2026-02-13 17:06:06,357 log 98420 6192656384 "POST /api/admin/upload-document/ HTTP/1.1" 200 121
+INFO 2026-02-13 17:06:17,966 log 98420 6192656384 "POST /api/admin/upload-document/ HTTP/1.1" 200 121
+INFO 2026-02-13 17:13:21,127 autoreload 98420 8589732928 /Users/nirajkumarjha/Manu/Copy/protobytes-2.0-team-VoiceNepal/backend/voicechat/venv/lib/python3.14/site-packages/openai/types/responses/response_output_item_added_event.py changed, reloading.
+INFO 2026-02-13 17:13:21,661 autoreload 98786 8589732928 Watching for file changes with StatReloader
+INFO 2026-02-13 17:14:04,944 autoreload 98786 8589732928 /Users/nirajkumarjha/Manu/Copy/protobytes-2.0-team-VoiceNepal/backend/voicechat/core/rag_service.py changed, reloading.
+INFO 2026-02-13 17:14:05,339 autoreload 98856 8589732928 Watching for file changes with StatReloader
+INFO 2026-02-13 17:14:11,470 autoreload 98856 8589732928 /Users/nirajkumarjha/Manu/Copy/protobytes-2.0-team-VoiceNepal/backend/voicechat/core/rag_service.py changed, reloading.
+INFO 2026-02-13 17:14:11,744 autoreload 98866 8589732928 Watching for file changes with StatReloader
+INFO 2026-02-13 17:14:14,480 log 98866 6165131264 "OPTIONS /api/admin/upload-document/ HTTP/1.1" 200 0
+INFO 2026-02-13 17:14:15,725 log 98866 6165131264 "POST /api/admin/upload-document/ HTTP/1.1" 200 227
+INFO 2026-02-13 17:15:38,735 log 98866 6164557824 "OPTIONS /api/check-role/ HTTP/1.1" 200 0
+INFO 2026-02-13 17:15:38,740 log 98866 6164557824 "GET /api/check-role/ HTTP/1.1" 200 56
+INFO 2026-02-13 17:16:35,664 log 98866 6164557824 "OPTIONS /api/chat/ HTTP/1.1" 200 0
+INFO 2026-02-13 17:16:52,971 log 98866 6164557824 "POST /api/chat/ HTTP/1.1" 200 951388
