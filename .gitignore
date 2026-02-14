@@ -1,1 +1,4 @@
 backend/voicechat/.env
+*.sqlite3
+*.log
+logs/
