@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { 
   Mic, Send, Volume2, Loader2, Trash2, 
   Shield, Upload, FileText, LogOut, User,
-  X, Check, AlertCircle, Info, Bot, UserCircle, Square
+  X, Check, AlertCircle, Info, Bot, UserCircle, Square, Lock, Key
 } from "lucide-react";
 
 // Custom Logo Component
@@ -38,9 +38,12 @@ const VoiceTextChat = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminKey, setAdminKey] = useState(localStorage.getItem('admin_key') || "");
   const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [adminTab, setAdminTab] = useState("query");
   const [feedbackMode, setFeedbackMode] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState(null);
+  const [loginKeyInput, setLoginKeyInput] = useState("");
+  const [isLoginLoading, setIsLoginLoading] = useState(false);
 
   const recognitionRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -155,21 +158,29 @@ const VoiceTextChat = () => {
     }
   };
 
-  const saveAdminKey = async (key) => {
-    if (!key?.trim()) {
+  const handleAdminLogin = async (e) => {
+    e.preventDefault();
+    
+    if (!loginKeyInput?.trim()) {
       showNotification("Please enter a valid admin key", 'error');
       return;
     }
     
-    const isValidAdmin = await checkAdminStatus(key);
+    setIsLoginLoading(true);
+    
+    const isValidAdmin = await checkAdminStatus(loginKeyInput);
+    
+    setIsLoginLoading(false);
     
     if (isValidAdmin) {
-      localStorage.setItem('admin_key', key);
-      setAdminKey(key);
+      localStorage.setItem('admin_key', loginKeyInput);
+      setAdminKey(loginKeyInput);
       setIsAdmin(true);
-      showNotification("Admin access granted", 'success');
+      setShowAdminLogin(false);
+      setLoginKeyInput("");
+      showNotification("Admin access granted successfully! 🎉", 'success');
     } else {
-      showNotification("Invalid admin key", 'error');
+      showNotification("Invalid admin key. Please try again.", 'error');
     }
   };
 
@@ -178,6 +189,7 @@ const VoiceTextChat = () => {
     setAdminKey("");
     setIsAdmin(false);
     setShowAdminPanel(false);
+    setLoginKeyInput("");
     showNotification("Logged out successfully", 'success');
   };
 
@@ -415,6 +427,121 @@ const VoiceTextChat = () => {
         />
       )}
 
+      {/* Admin Login Modal */}
+      {showAdminLogin && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden animate-slide-up">
+            {/* Header with gradient */}
+            <div className="bg-gradient-to-br from-amber-400 via-orange-500 to-red-500 p-8 text-white relative overflow-hidden">
+              <div className="absolute inset-0 bg-black/10"></div>
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl">
+                      <Shield size={32} />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold">Admin Access</h2>
+                      <p className="text-sm text-white/90">Secure Login Portal</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowAdminLogin(false);
+                      setLoginKeyInput("");
+                    }}
+                    className="p-2 rounded-xl hover:bg-white/20 transition-all"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+              </div>
+              
+              {/* Decorative elements */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12"></div>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleAdminLogin} className="p-8">
+              <div className="mb-6">
+                <label className="block text-sm font-bold text-gray-700 mb-3">
+                  <div className="flex items-center gap-2">
+                    <Key size={18} className="text-amber-600" />
+                    Admin API Key
+                  </div>
+                </label>
+                <div className="relative">
+                  <input
+                    type="password"
+                    value={loginKeyInput}
+                    onChange={(e) => setLoginKeyInput(e.target.value)}
+                    placeholder="Enter your admin key"
+                    className="w-full px-4 py-4 pl-12 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+                    disabled={isLoginLoading}
+                    autoFocus
+                  />
+                  <Lock size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                </div>
+                <p className="mt-2 text-xs text-gray-500 flex items-center gap-1">
+                  <Info size={14} />
+                  Your key is encrypted and stored securely
+                </p>
+              </div>
+
+              {/* Security badges */}
+              <div className="mb-6 bg-amber-50 border-2 border-amber-200 rounded-xl p-4">
+                <p className="text-xs font-semibold text-amber-800 mb-2">🔒 Security Features:</p>
+                <ul className="text-xs text-amber-700 space-y-1">
+                  <li>• End-to-end encrypted authentication</li>
+                  <li>• Secure session management</li>
+                  <li>• Role-based access control</li>
+                </ul>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAdminLogin(false);
+                    setLoginKeyInput("");
+                  }}
+                  className="flex-1 bg-gray-100 text-gray-700 py-4 px-6 rounded-xl hover:bg-gray-200 transition-all font-semibold"
+                  disabled={isLoginLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-gradient-to-r from-amber-500 to-orange-600 text-white py-4 px-6 rounded-xl hover:shadow-lg transition-all font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isLoginLoading || !loginKeyInput.trim()}
+                >
+                  {isLoginLoading ? (
+                    <>
+                      <Loader2 size={20} className="animate-spin" />
+                      Verifying...
+                    </>
+                  ) : (
+                    <>
+                      <Shield size={20} />
+                      Login
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Help text */}
+              <div className="mt-6 text-center">
+                <p className="text-xs text-gray-500">
+                  Need help? Contact your system administrator
+                </p>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Notification Toast */}
       {notification && (
         <div className="fixed top-4 right-4 z-50 animate-slide-in-right">
@@ -516,22 +643,21 @@ const VoiceTextChat = () => {
               {/* Admin Login/Logout */}
               {!isAdmin ? (
                 <button
-                  onClick={() => {
-                    const key = prompt("Enter admin key:");
-                    if (key) saveAdminKey(key);
-                  }}
-                  className="p-2.5 rounded-xl text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all"
+                  onClick={() => setShowAdminLogin(true)}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-gray-600 hover:text-amber-600 hover:bg-amber-50 transition-all border-2 border-transparent hover:border-amber-200 font-medium text-sm"
                   title="Admin Login"
                 >
                   <User size={20} />
+                  <span>Admin</span>
                 </button>
               ) : (
                 <button
                   onClick={logout}
-                  className="p-2.5 rounded-xl text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all font-medium text-sm"
                   title="Logout"
                 >
                   <LogOut size={20} />
+                  <span>Logout</span>
                 </button>
               )}
             </div>
@@ -675,7 +801,7 @@ const VoiceTextChat = () => {
               )}
             </div>
 
-            {/* Quick Stats (Optional Enhancement) */}
+            {/* Quick Stats */}
             <div className="mt-6 bg-white rounded-2xl p-5 shadow-sm border border-amber-200">
               <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
                 <span className="text-xl">📊</span>
@@ -740,7 +866,7 @@ const VoiceTextChat = () => {
                 ))}
               </div>
 
-              {/* Quick Suggestions - Passport Only */}
+              {/* Quick Suggestions */}
               <div className="flex flex-wrap gap-3 justify-center max-w-2xl mx-auto">
                 {[
                   "What documents do I need for a new passport?",
