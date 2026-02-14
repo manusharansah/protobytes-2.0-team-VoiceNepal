@@ -51,8 +51,24 @@
   }
 
   // Text-to-speech, modeled after playbackText() in core/templates/core/index.html
+  function sanitizeSpeechText(text) {
+    if (!text) return '';
+
+    return String(text)
+      .replace(/```[\s\S]*?```/g, ' ')
+      .replace(/`{1,3}/g, ' ')
+      .replace(/\[(.*?)\]\((.*?)\)/g, '$1')
+      .replace(/https?:\/\/\S+|www\.\S+/g, ' ')
+      .replace(/^\s*[-+*]\s+/gm, '')
+      .replace(/[#*_~>|]/g, ' ')
+      .replace(/_/g, ' ')
+      .replace(/[^\w\s.,!?;:'"()\-\u0900-\u097F।]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
   function speakText(text, langCode) {
-    const cleanText = (text || '').trim();
+    const cleanText = sanitizeSpeechText(text);
     if (!cleanText) return;
 
     if (!('speechSynthesis' in window)) {

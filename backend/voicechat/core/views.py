@@ -738,10 +738,27 @@ rag_service = RAGService()
 
 
 def clean_tts_text(text):
-    """Remove markdown formatting for TTS"""
-    cleaned = re.sub(r"\*\*(.*?)\*\*", r"\1", text)
-    cleaned = re.sub(r"\*(.*?)\*", r"\1", cleaned)
-    return cleaned.strip()
+    """Sanitize model output so TTS does not read formatting symbols aloud."""
+    if not text:
+        return ""
+
+    cleaned = str(text)
+
+    # Remove markdown/code/link syntax that sounds noisy in speech.
+    cleaned = re.sub(r"```[\s\S]*?```", " ", cleaned)
+    cleaned = re.sub(r"`{1,3}", " ", cleaned)
+    cleaned = re.sub(r"\[(.*?)\]\((.*?)\)", r"\1", cleaned)
+    cleaned = re.sub(r"https?://\S+|www\.\S+", " ", cleaned)
+
+    # Strip list/heading/quote markers and common formatting characters.
+    cleaned = re.sub(r"^\s*[-+*]\s+", "", cleaned, flags=re.MULTILINE)
+    cleaned = re.sub(r"[#*_~>|]", " ", cleaned)
+    cleaned = cleaned.replace("_", " ")
+
+    # Keep speech-friendly punctuation; remove other symbols.
+    cleaned = re.sub(r"[^\w\s.,!?;:'\"()\-\u0900-\u097F।]", " ", cleaned)
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    return cleaned
 
 
 def identify_user_role(request):

@@ -6832,7 +6832,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { 
   Mic, Send, Volume2, Loader2, Trash2, 
   Shield, Upload, FileText, LogOut, User,
-  X, Check, AlertCircle, Info, Bot, UserCircle
+  X, Check, AlertCircle, Info, Bot, UserCircle, Square
 } from "lucide-react";
 
 // Custom Logo Component
@@ -7011,6 +7011,30 @@ const VoiceTextChat = () => {
     showNotification("Logged out successfully", 'success');
   };
 
+  const goHome = () => {
+    if (recognitionRef.current && isRecording) {
+      recognitionRef.current.stop();
+    }
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    setInputText("");
+    setInterimTranscript("");
+    setMessages([]);
+    setShowAdminPanel(false);
+    setFeedbackMode(false);
+    setSelectedMessage(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const stripMarkdownAsterisks = (text = "") =>
+    String(text)
+      .replace(/\*\*(.*?)\*\*/g, "$1")
+      .replace(/\*(.*?)\*/g, "$1")
+      .replace(/\*/g, "")
+      .trim();
+
   const sendMessage = async (text) => {
     if (!text.trim()) return;
 
@@ -7048,7 +7072,7 @@ const VoiceTextChat = () => {
 
       const assistantMessage = { 
         type: "assistant", 
-        content: data.text, 
+        content: stripMarkdownAsterisks(data.text), 
         audioUrl,
         role: data.role,
         timestamp: data.timestamp || null,
@@ -7076,6 +7100,13 @@ const VoiceTextChat = () => {
     if (audioRef.current) {
       audioRef.current.src = url;
       audioRef.current.play().catch(err => console.error("Audio error:", err));
+    }
+  };
+
+  const stopAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
     }
   };
 
@@ -7235,10 +7266,15 @@ const VoiceTextChat = () => {
         <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             {/* Logo and Title */}
-            <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={goHome}
+              className="flex items-center gap-4 text-left group"
+              title="Go to home"
+            >
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-2xl blur opacity-30 animate-pulse-slow"></div>
-                <div className="relative bg-white p-2 rounded-2xl shadow-lg">
+                <div className="relative bg-white p-2 rounded-2xl shadow-lg group-hover:shadow-xl transition-all">
                   <SajiloSewaLogo size={40} />
                 </div>
               </div>
@@ -7252,7 +7288,7 @@ const VoiceTextChat = () => {
                   {isAdmin && <span className="ml-2 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full font-semibold">Admin</span>}
                 </p>
               </div>
-            </div>
+            </button>
 
             {/* Controls */}
             <div className="flex items-center gap-3">
@@ -7606,16 +7642,28 @@ const VoiceTextChat = () => {
                   )}
 
                   {msg.audioUrl && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        playAudio(msg.audioUrl);
-                      }}
-                      className="mt-4 flex items-center gap-2 text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 px-4 py-2 rounded-full hover:bg-blue-100 transition-all shadow-sm hover:shadow-md"
-                    >
-                      <Volume2 size={16} />
-                      Play Audio
-                    </button>
+                    <div className="mt-4 flex items-center gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          playAudio(msg.audioUrl);
+                        }}
+                        className="flex items-center gap-2 text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 px-4 py-2 rounded-full hover:bg-blue-100 transition-all shadow-sm hover:shadow-md"
+                      >
+                        <Volume2 size={16} />
+                        Play Audio
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          stopAudio();
+                        }}
+                        className="flex items-center gap-2 text-xs font-semibold text-red-600 hover:text-red-700 bg-red-50 px-4 py-2 rounded-full hover:bg-red-100 transition-all shadow-sm hover:shadow-md"
+                      >
+                        <Square size={14} />
+                        Stop
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
